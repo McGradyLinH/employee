@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jc.employee.mapper.EmpDao">
+    <resultMap id="emp" type="employee">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="empName" jdbcType="VARCHAR" property="empName"/>
+        <result column="empCode" jdbcType="VARCHAR" property="empCode"/>
+        <result column="deptName" jdbcType="VARCHAR" property="deptName"/>
+        <result column="pwd" jdbcType="VARCHAR" property="pwd"/>
+        <association property="leader" column="employee">
+            <result column="empName1" jdbcType="VARCHAR" property="empName"/>
+            <result column="empCode1" jdbcType="VARCHAR" property="empCode"/>
+        </association>
+    </resultMap>
+
+    <select id="queryUserByEmpCode" resultMap="emp" parameterType="string">
+        select e1.id,e1.empName,e1.empCode,de.deptName,e1.pwd,e2.empName empName1,e2.empCode empCode1
+                                from employee e1 left join empDept de on e1.deptCode=de.deptCode
+                                  left join employee e2 on e1.leaderCode=e2.empCode
+                                where e1.empCode = #{_parameter}
+    </select>
+
+    <select id="queryAllEmp" resultType="employee">
+        select empCode,empName from employee
+    </select>
+
+</mapper>

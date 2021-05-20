@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.188.81:3306/employeeApp?serverTimezone=PRC&useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: 123456
+    type: com.zaxxer.hikari.HikariDataSource
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.jc.employee.domain
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+
+
+logging:
+  level:
+    com.jc.employee.mapper: debug

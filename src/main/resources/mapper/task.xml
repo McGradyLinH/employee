@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jc.employee.mapper.TaskDao">
+    <resultMap id="taskMap" type="task">
+        <id column="id1" jdbcType="INTEGER" property="id"/>
+        <result column="taskName" jdbcType="VARCHAR" property="taskName"/>
+        <result column="taskContent" jdbcType="VARCHAR" property="taskContent"/>
+        <result column="pubTime" jdbcType="DATE" property="pubTime"/>
+        <result column="endTime" jdbcType="DATE" property="endTime"/>
+        <result column="publisherCode" jdbcType="VARCHAR" property="publisherCode"/>
+        <result column="taskNum" jdbcType="INTEGER" property="taskNum"/>
+        <result column="taskUnit" jdbcType="VARCHAR" property="taskUnit"/>
+        <association property="taskAllocation">
+            <id column="id" jdbcType="INTEGER" property="id"/>
+            <result column="completeNum" jdbcType="INTEGER" property="completeNum"/>
+        </association>
+    </resultMap>
+
+    <insert id="pubTask" parameterType="task" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into task (taskName, taskContent, pubTime, endTime, publisherCode, taskNum, taskUnit, designees,
+                          designeesName)
+        values (#{taskName}, #{taskContent}, #{pubTime}, #{endTime}, #{publisherCode}, #{taskNum}, #{taskUnit},
+                #{designees}, #{designeesName})
+    </insert>
+
+    <select id="assignTasks" parameterType="list">
+        insert into taskAllocation (taskId,taskRecipient) values
+        <foreach collection="list" separator="," item="taskAllocation">
+            (#{taskAllocation.taskId},#{taskAllocation.taskRecipient})
+        </foreach>
+    </select>
+    <!--and ta.endTime > NOW()-->
+    <select id="queryTask" parameterType="string" resultMap="taskMap">
+        SELECT *
+        FROM `taskAllocation` tac
+                 LEFT JOIN task ta on tac.taskId = ta.id
+        where tac.taskRecipient = #{arg0} order by ta.endTime desc
+    </select>
+
+    <select id="queryPubTask" parameterType="string" resultType="task">
+        SELECT *
+        FROM task
+        where publisherCode = #{arg0} order by endTime desc
+    </select>
+    
+    <select id="queryScoreByTaskId" resultType="taskAllocation" parameterType="integer">
+        SELECT taskRecipient,completeNum FROM `taskAllocation` where  taskId=#{arg0}
+    </select>
+
+    <update id="updateTaskAllocation" parameterType="taskAllocation">
+        update taskAllocation set completeNum=#{completeNum} where taskId=#{taskId} and taskRecipient=#{taskRecipient}
+    </update>
+</mapper>

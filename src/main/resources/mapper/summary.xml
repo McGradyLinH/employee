@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jc.employee.mapper.SummaryDao">
+    <resultMap id="summaryMap" type="Summary">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="subTime" jdbcType="DATE" property="subTime"/>
+        <result column="summaryContent" jdbcType="VARCHAR" property="summaryContent"/>
+        <result column="belongToMonth" jdbcType="VARCHAR" property="belongToMonth"/>
+        <association property="employee" column="belongToEmp">
+            <result column="empName" jdbcType="VARCHAR" property="empName"/>
+            <result column="empCode" jdbcType="VARCHAR" property="empCode"/>
+        </association>
+    </resultMap>
+
+    <insert id="writeSummary" parameterType="summary">
+        insert into summary(subTime,summaryContent,belongToEmp,belongToMonth) values
+                    (#{subTime},#{summaryContent},#{belongToEmp},#{belongToMonth})
+    </insert>
+
+    <update id="updateSummary" parameterType="summary">
+        update summary set summaryContent=#{summaryContent},subTime=#{subTime},updateCount=updateCount+1
+        where belongToEmp = #{belongToEmp} and belongToMonth = #{belongToMonth}
+    </update>
+
+    <select id="querySummary" parameterType="summary" resultMap="summaryMap">
+        select su.*,emp.empName,emp.empCode from summary su left join employee emp on su.belongToEmp=emp.empCode
+        <where>
+            1=1
+            <if test="null != belongToEmp and belongToEmp != ''">
+               and  su.belongToEmp = #{belongToEmp}
+            </if>
+            <if test="null != belongToMonth and belongToMonth != ''">
+                and  su.belongToMonth = #{belongToMonth}
+            </if>
+            <if test="null != id and id != ''">
+                and  su.id = #{id}
+            </if>
+            order by belongToMonth desc
+        </where>
+    </select>
+
+    <select id="querySummaryNoScoreByReviewer" parameterType="summary" resultMap="summaryMap">
+        select su.*,emp.empName,emp.empCode from summary su left join employee emp on su.belongToEmp=emp.empCode
+            where su.id not in (select ss.summaryId from summaryScore ss left join summary su1 on
+            ss.summaryId=su1.id where su1.belongToMonth=#{belongToMonth} and ss.reviewer=#{reviewer})
+                                      and su.belongToMonth=#{belongToMonth} and su.belongToEmp!=#{reviewer}
+    </select>
+    
+    <insert id="scoring" parameterType="summaryScore">
+        insert into summaryScore (summaryId,score,reviewer)
+        values (#{summaryId},#{score},#{reviewer})
+    </insert>
+
+    <select id="queryEmpScore" resultType="empScore" parameterType="string">
+        SELECT emp.empName,sum(ss.score) totalScore FROM summaryScore ss LEFT JOIN
+            summary su on ss.summaryId=su.id left JOIN employee emp on su.belongToEmp=emp.empCode
+            WHERE su.belongToMonth=#{arg0}
+        GROUP BY emp.empName order by totalScore desc
+    </select>
+</mapper>

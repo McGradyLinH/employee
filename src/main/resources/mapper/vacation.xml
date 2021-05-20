@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jc.employee.mapper.VacationDao">
+    <insert id="startVacation" parameterType="vacationDetail">
+        insert into vacationdetail (vacationTypeId,leavePeople,startTime,endTime,totalTime,vacationReason,approverCode) values
+        (#{vacationTypeId},#{leavePeople},#{startTime},#{endTime},#{totalTime}
+        ,#{vacationReason},#{approverCode})
+    </insert>
+
+    <select id="queryVacation" resultType="vacationDetail">
+        select vd.*,emp.empName from vacationdetail vd left join employee emp on vd.leavePeople=emp.empCode
+        <where>
+            <if test="code == 1">
+                vd.approverCode = #{approveCode}
+            </if>
+            <if test="code == 0">
+                vd.leavePeople = #{approveCode}
+            </if>
+        </where>
+    </select>
+
+    <update id="approveVacation" parameterType="vacationDetail">
+        update vacationdetail set approvalRemarks=#{approvalRemarks},processNumber=#{processNumber},approveTime=now()
+        where id = #{id}
+    </update>
+
+    <select id="queryVacationType" resultType="vacationType">
+        select * from vacationType
+    </select>
+</mapper>
